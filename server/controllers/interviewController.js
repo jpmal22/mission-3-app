@@ -2,8 +2,9 @@ const { GoogleGenerativeAI } = require("@google/generative-ai"); //Imports the G
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GEMINI_API_KEY); //creates new instance of the GoogleGenerativeAI class, passes the env variable
 const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" }); //Gets the gemini-1.5-flash model from the GoogleGenerativeAI instance
 
-//Function to call the Google Gemini API
-async function callGoogleGemini(promptContent) {
+//Function to call the Google Gemini API 
+//Retry added as solution to intermittent errors in communication with the API
+async function callGoogleGemini(promptContent, retryCount = 0) {
   try {
     const result = await model.generateContent(promptContent);
     const response = await result.response;
@@ -11,7 +12,13 @@ async function callGoogleGemini(promptContent) {
     return text;
   } catch (error) {
     console.error("Error communicating with Google Gemini API:", error);
-    throw error;
+    if (retryCount < 3) { // Limits to 3 retries - added to prevent infinite loop
+      console.log(`Retrying... (${retryCount + 1})`);
+      await new Promise(r => setTimeout(r, 5000)); // Waits for 5 seconds
+      return callGoogleGemini(promptContent, retryCount + 1);
+    } else {
+      throw error;
+    }
   }
 }
 
@@ -24,10 +31,10 @@ exports.getInterviewResponse = async (req, res) => {
     .join("\n");
     //Creates a prompt object with the role of job interviewer, the content of the conversation history, and the user input
     //prompt is used as input to the callGoogleGemini function
-  const prompt = {
-    role: "job interviewer",
-    content: `You are a job interviewer for the position of ${jobTitle}. Here is the conversation so far:\n${conversationHistory}\nUser: ${userInput}\nAI:`,
-  };
+const prompt = {
+  role: "friendly anonymous job interviewer",
+  content: `You are a friendly anonymous job interviewer for the position of ${jobTitle}. Here is the conversation so far:\n${conversationHistory}\nUser: ${userInput}\nAI: Let's get started. `,
+};
 //callGoogleGemini function sends the prompt content to the Google Gemini API and returns the response
   try {
     const apiResponse = await callGoogleGemini(prompt.content);
