@@ -6,28 +6,27 @@ function InterviewApp() {
   const [jobTitle, setJobTitle] = useState("");
   const [chat, setChat] = useState([]);
   const [userInput, setUserInput] = useState("");
+  const [questionCount, setQuestionCount] = useState(0); // Added to track the number of questions asked
 
   const handleJobTitleChange = (e) => setJobTitle(e.target.value);
   const handleUserInputChange = (e) => setUserInput(e.target.value);
 
- //handleUserInput is called when the user submits their input. 
- //It sends a POST request to the /api/interview endpoint with the jobTitle, userInput, and chat history in the request body.
- //If successful, it adds the user input to the chat history and the AI response from the server.
   const handleUserInputSubmit = async () => {
     try {
       const response = await axios.post("http://localhost:3001/api/interview", {
         jobTitle,
         userInput,
         chat,
+        questionCount,
       });
       setChat([...chat, { user: userInput }, { ai: response.data.content }]);
       setUserInput("");
+      setQuestionCount(response.data.questionCount);
     } catch (error) {
       console.error("Error:", error);
     }
   };
 
-  //The UI of the app
   return (
     <div className="App">
       <header className="App-header">

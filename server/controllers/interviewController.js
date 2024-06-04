@@ -1,9 +1,8 @@
-const { GoogleGenerativeAI } = require("@google/generative-ai"); //Imports the GoogleGenerativeAI class from the package
-const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GEMINI_API_KEY); //creates new instance of the GoogleGenerativeAI class, passes the env variable
-const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" }); //Gets the gemini-1.5-flash model from the GoogleGenerativeAI instance
+const { GoogleGenerativeAI } = require("@google/generative-ai");
+const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GEMINI_API_KEY);
+const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
-//Function to call the Google Gemini API 
-//Retry added as solution to intermittent errors in communication with the API
+//Added retry logic to handle intermittent failures communicating with the AI API
 async function callGoogleGemini(promptContent, retryCount = 0) {
   try {
     const result = await model.generateContent(promptContent);
@@ -12,9 +11,9 @@ async function callGoogleGemini(promptContent, retryCount = 0) {
     return text;
   } catch (error) {
     console.error("Error communicating with Google Gemini API:", error);
-    if (retryCount < 3) { // Limits to 3 retries - added to prevent infinite loop
+    if (retryCount < 3) {
       console.log(`Retrying... (${retryCount + 1})`);
-      await new Promise(r => setTimeout(r, 5000)); // Waits for 5 seconds
+      await new Promise((r) => setTimeout(r, 5000));
       return callGoogleGemini(promptContent, retryCount + 1);
     } else {
       throw error;
@@ -23,23 +22,24 @@ async function callGoogleGemini(promptContent, retryCount = 0) {
 }
 
 exports.getInterviewResponse = async (req, res) => {
-  const { jobTitle, userInput, chat } = req.body;
+  const { jobTitle, userInput, chat, questionCount = 0 } = req.body;
 
-  
-  const conversationHistory = chat //creates a string of the conversation history by mapping over the chat array and joining the user and ai responses
+  const conversationHistory = chat
     .map((entry) => `${entry.user ? "User" : "AI"}: ${entry.user || entry.ai}`)
     .join("\n");
-    //Creates a prompt object with the role of job interviewer, the content of the conversation history, and the user input
-    //prompt is used as input to the callGoogleGemini function
-const prompt = {
-  role: "friendly anonymous job interviewer",
-  content: `You are a friendly anonymous job interviewer for the position of ${jobTitle}. Here is the conversation so far:\n${conversationHistory}\nUser: ${userInput}\nAI: Let's get started. `,
-};
-//callGoogleGemini function sends the prompt content to the Google Gemini API and returns the response
+
+  let promptContent;
+  if (questionCount < 6) {
+    promptContent = `You are a job interviewer for the position of ${jobTitle}. Continue the interview based on the user's input and ask the next question. Here is the conversation so far:\n${conversationHistory}\nUser: ${userInput}\nAI:`;
+  } else {
+    promptContent = `You are a job interviewer for the position of ${jobTitle}. Based on the user's answers, provide detailed feedback and specific suggestions directly to the user on how they can improve their interview responses and better prepare for the real interview. Address the user directly with "you" instead of "the user". Here is the conversation so far:\n${conversationHistory}\nUser: ${userInput}\nAI:`;
+  }
+
   try {
-    const apiResponse = await callGoogleGemini(prompt.content);
-    res.json({ content: apiResponse }); //successful call results in JSON response with the content from the API response
+    const apiResponse = await callGoogleGemini(promptContent);
+    res.json({ content: apiResponse, questionCount: questionCount + 1 });
   } catch (error) {
+    console.error("Error generating response:", error);
     res.status(500).send("Error communicating with AI API");
   }
 };
