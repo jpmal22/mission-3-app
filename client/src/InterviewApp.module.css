@@ -1,0 +1,161 @@
+.App {
+  text-align: center;
+  font-family: Arial, sans-serif;
+}
+
+.App-header {
+  background-color: #282c34;
+  padding: 20px;
+  color: white;
+}
+
+h1 {
+  font-size: 2.5em;
+  margin-bottom: 20px;
+  color: #005f73;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.label {
+  font-size: 1.2em;
+  margin-bottom: 10px;
+  color: #005f73;;
+  margin-right: 10px; /* Adds space between label and input */
+}
+
+.inputBoxContainer {
+  display: flex;
+  align-items: center; /* Aligns items horizontally */
+  justify-content: center;
+  margin: 0 auto; /* Centers the container */
+  width: 50%; 
+}
+
+.inputBox {
+  width: 40%; 
+  padding: 10px;
+  margin: 10px 0 20px;
+  border-radius: 10px;
+  border: 1px solid #ccc;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  font-size: 16px;
+}
+
+.chat {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin: 20px auto;
+  max-width: 600px;
+}
+
+.message {
+  display: flex;
+  align-items: center;
+  margin: 10px 0;
+}
+
+.userMessage {
+  justify-content: flex-end;
+}
+
+.aiMessage {
+  justify-content: flex-start;
+}
+
+.avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  margin: 0 10px;
+}
+
+.bubble {
+  max-width: 60%;
+  padding: 10px 15px;
+  border-radius: 15px;
+  position: relative;
+}
+
+.userBubble {
+  background-color: #d1f7c4;
+  align-self: flex-end;
+}
+
+.aiBubble {
+  background-color: #f1f1f1;
+  align-self: flex-start;
+}
+
+.bubble::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  width: 0;
+  height: 0;
+}
+
+.userBubble::after {
+  border: 10px solid transparent;
+  border-right-color: #d1f7c4;
+  right: -20px;
+  transform: translateY(-50%);
+}
+
+.aiBubble::after {
+  border: 10px solid transparent;
+  border-left-color: #f1f1f1;
+  left: -20px;
+  transform: translateY(-50%);
+}
+
+.inputContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 20px;
+  position: relative; /* Added to position loader */
+}
+
+.textArea {
+  width: 60%;
+  height: 100px;
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid #ccc;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin: 10px 0;
+  font-size: 16px;
+  resize: none;
+}
+
+.loaderContainer {
+  position: absolute;
+  top: -40px; /* Positions loader above the text area */
+}
+
+.submitButton {
+  background-color: #61dafb;
+  color: #282c34;
+  border: none;
+  border-radius: 5px;
+  padding: 10px 20px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  margin-top: 10px; 
+  margin-bottom: 20px; 
+}
+
+.submitButton:hover {
+  background-color: #21a1f1;
+}
+
+.submitButton:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+
+
+

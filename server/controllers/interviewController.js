@@ -32,7 +32,8 @@ exports.getInterviewResponse = async (req, res) => {
   if (questionCount < 6) {
     promptContent = `You are a job interviewer for the position of ${jobTitle}. Continue the interview based on the user's input and ask the next question. Here is the conversation so far:\n${conversationHistory}\nUser: ${userInput}\nAI:`;
   } else {
-    promptContent = `You are a job interviewer for the position of ${jobTitle}. Based on the user's answers, provide detailed feedback and specific suggestions directly to the user on how they can improve their interview responses and better prepare for the real interview. Address the user directly with "you" instead of "the user". Here is the conversation so far:\n${conversationHistory}\nUser: ${userInput}\nAI:`;
+    promptContent = `You are a job interviewer for the position of ${jobTitle}. Based on the user's answers, provide detailed feedback and specific suggestions directly to the user on how they can improve their interview responses and better prepare for the real interview. 
+    Address the user directly with "you" instead of "the user". Here is the conversation so far:\n${conversationHistory}\nUser: ${userInput}\nAI:`;
   }
 
   try {
