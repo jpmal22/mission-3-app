@@ -1,8 +1,11 @@
+//1.Imports the GoogleGenerativeAI class from the @google/generative-ai package.
+//2.Creates a new instance of GoogleGenerativeAI with the GOOGLE_GEMINI_API_KEY environment variable.
+//3.Calls the getGenerativeModel method on the genAI instance to get the "gemini-1.5-flash" model.
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GEMINI_API_KEY);
 const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
-//Added retry logic to handle intermittent failures communicating with the AI API
+//Added retry logic to handle intermittent failures communicating with the AI API, solving this issue in most cases
 async function callGoogleGemini(promptContent, retryCount = 0) {
   try {
     const result = await model.generateContent(promptContent);

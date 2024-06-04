@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 import styles from "./InterviewApp.module.css";
-import BounceLoader from "react-spinners/BounceLoader"; // Spinner
+import BounceLoader from "react-spinners/BounceLoader"; 
 
 function InterviewApp() {
   const [jobTitle, setJobTitle] = useState("");
@@ -35,7 +35,7 @@ function InterviewApp() {
   return (
     <div className={styles.App}>
       <header className={styles.AppHeader}>
-        <h1>Let's Practice Interview Skills!</h1>
+        <h1>Interview Skills Practice</h1>
 
         <div className={styles.inputBoxContainer}>
           <label className={styles.label} htmlFor="jobTitle">
