@@ -20,6 +20,7 @@
     "react-scripts": "latest",
     "react-spinner": "^0.2.7",
     "rimraf": "latest",
+    "stream-http": "^3.2.0",
     "svgo": "latest",
     "web-vitals": "^2.1.4"
   },
