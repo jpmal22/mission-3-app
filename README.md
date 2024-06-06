@@ -47,5 +47,7 @@ Install root dependencies:
 
 SERVER_PORT=3001
 
+OPENAI_API_KEY=your_openai_api_key_here
+
 
 To start the application run npm start and it will run both front end and back end concurrently 
