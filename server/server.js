@@ -6,10 +6,9 @@ const path = require("path");
 const routes = require("./routes/routes");
 
 const app = express();
-const port = process.env.PORT || 3001;
 
 const corsOptions = {
-  origin: "http://localhost:3000",
+  origin: process.env.FRONTEND_URL || "http://localhost:3000",
   optionsSuccessStatus: 200,
 };
 
@@ -28,6 +27,7 @@ app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "..", "client", "build", "index.html"));
 });
 
-app.listen(port, () => {
-  console.log(`Server listening on port ${port}`);
-});
+module.exports = app; // Export the app for Vercel
+
+// app.listen(port, () => {
+//   console.log(`Server listening on port ${port}`);
