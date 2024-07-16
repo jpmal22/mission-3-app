@@ -1,3 +1,5 @@
+//This file customizes Webpack config so the frontend can display without errors 
+//(due to Webpack 5 > removal of Node.js polyfills). 
 const webpack = require("webpack");
 
 //fallbacks for Node.js modules Webpack 5 no longer includes polyfills for 
