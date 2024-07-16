@@ -1,102 +1,53 @@
-
-/**const { readDB, writeDB } = require('../utils/databaseUtils');
-require('dotenv').config();
+//1.Imports the GoogleGenerativeAI class from the @google/generative-ai package.
+//2.Creates a new instance of GoogleGenerativeAI with the GOOGLE_GEMINI_API_KEY environment variable.
+//3.Calls the getGenerativeModel method on the genAI instance to get the "gemini-1.5-flash" model.
 const { GoogleGenerativeAI } = require("@google/generative-ai");
+const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GEMINI_API_KEY);
+const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
-const genAI = new GoogleGenerativeAI(process.env.AI_API_KEY);
-
-exports.getInterviewResponse = async (req, res) => {
-
-    const { sessionID, jobTitle, userInput } = req.body;
-    const db = readDB();
-
-    if (!db.sessions[sessionID]) {
-        db.sessions[sessionID] = { jobTitle, history: []};
-    }
-
-    db.sessions[sessionID].history.push(userInput);
-    writeDB(db);
-
-    try {
-        const prompt = createPrompt(db.sessions[sessionID]);
-
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash"});
-        const result = await model.generateContent(prompt);
-        const response = await result.response;
-        const text = response.text();
-
-        res.json({ question: text });
-    
-    } catch (error) {
-        console.error('Failed to get data from Gemini:', error);
-        res.status(500).json({ error: 'Failed to communicate with Gemini'});
-    }
-};
-
-function createPrompt(session) {
-    let prompt = `Job interview for a ${session.jobTitle}: \n`;
-    session.history.forEach((input, index) => {
-        if (index === 0) {
-            prompt += `Tell me about yourself.\n${input}\n`;
-        } else {
-            prompt += `Q: ${session.history[index - 1].question}\nA: ${input}\nQ: `;
-        }
-    });
-    return prompt + "Q: ";
-}***/
-
-
-// Import OpenAI library
-const OpenAI = require("openai").default;
-require('dotenv').config();
-
-// Initialize the OpenAI client with the API key
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
-});
-
-const { readDB, writeDB } = require('../utils/databaseUtils');
-
-// Function to generate AI responses using OpenAI
-async function getGenerativeAIResponse(previousMessages) {
+//Added retry logic to handle intermittent failures communicating with the AI API, solving this issue in most cases
+async function callGoogleGemini(promptContent, retryCount = 0) {
   try {
-    const completion = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
-      messages: [
-        { role: "system", content: "You are a helpful assistant, specialized in job interviews." },
-        ...previousMessages
-      ]
-    });
-    return completion.data.choices[0].message.content;
+    const result = await model.generateContent(promptContent);
+    const response = await result.response;
+    const text = await response.text();
+    return text;
   } catch (error) {
-    console.error('Failed to get data from OpenAI:', error);
-    throw new Error('Failed to communicate with OpenAI service');
+    console.error("Error communicating with Google Gemini API:", error);
+    if (retryCount < 3) {
+      console.log(`Retrying... (${retryCount + 1})`);
+      await new Promise((r) => setTimeout(r, 5000));
+      return callGoogleGemini(promptContent, retryCount + 1);
+    } else {
+      throw error;
+    }
   }
 }
 
-// API endpoint for handling interview responses
 exports.getInterviewResponse = async (req, res) => {
-  const { sessionID, userInput } = req.body;
-  const db = readDB();
-  if (!db.sessions[sessionID]) {
-    db.sessions[sessionID] = { history: [] };
-  }
+  const { jobTitle, userInput, chat, questionCount = 0 } = req.body;
 
-  // Add user input to the session history
-  db.sessions[sessionID].history.push({ role: "user", content: userInput });
-  writeDB(db);
+  const conversationHistory = chat
+    .map((entry) => `${entry.user ? "User" : "AI"}: ${entry.user || entry.ai}`)
+    .join("\n");
 
-  // Prepare the history for API request
+let promptContent;
+if (questionCount === 0) {
+  promptContent = `You are a job interviewer for the position of ${jobTitle}. Start the interview by asking "Tell me about yourself". Do not use a candidate's name in the conversation.`;
+} else if (questionCount < 6) {
+  promptContent = `You are a job interviewer for the position of ${jobTitle}. Continue the interview based on the user's input and ask the next question. Consider the entire conversation history when generating your response. Here is the conversation so far:\n${conversationHistory}\nUser: ${userInput}\nAI:`;
+} else {
+  promptContent = `You are a job interviewer for the position of ${jobTitle}. Based on the user's answers, provide detailed feedback and specific suggestions directly to the user on how they can improve their interview responses and better prepare for the real interview. 
+  Address the user directly with "you" instead of "the user". Consider the entire conversation history when generating your response. Here is the conversation so far:\n${conversationHistory}\nUser: ${userInput}\nAI:`;
+}
+
   try {
-    const responseText = await getGenerativeAIResponse(db.sessions[sessionID].history);
-    // Update history with the AI's response
-    db.sessions[sessionID].history.push({ role: "assistant", content: responseText });
-    writeDB(db);
-    
-    // Send response back to the client
-    res.json({ response: responseText });
+    const apiResponse = await callGoogleGemini(promptContent);
+    res.json({ content: apiResponse, questionCount: questionCount + 1 });
   } catch (error) {
     console.error("Error generating response:", error);
     res.status(500).send("Error communicating with AI API");
   }
 };
+
+//comment to run a workflow 2
